@@ -16,17 +16,23 @@ function App() {
 
   const handleKeyDown = (event: any) => {
     if (event.key === 'Enter') {
+      // if (dialog.length === 2) {
+      //
+      // }
       const v = value;
+      setTimeout(() => {
+        if (dialog.length === 1) dialog.push({key: "bot", value: "What is your name?"});
+        else dialog.push({key: "bot", value: dialog.length === 3 ?
+              `${aiBotService.getAnswer("hello")} ${v}!` : aiBotService.getAnswer(v)});
+
+        setDialog([...dialog]);
+      }, 1000)
+
+
       dialog.push({key: "user", value});
 
       setDialog([...dialog]);
       setValue("");
-
-      setTimeout(() => {
-        dialog.push({key: "bot", value: aiBotService.getAnswer(v)});
-
-        setDialog([...dialog]);
-      }, 1000)
     }
   };
 
