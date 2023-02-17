@@ -8,6 +8,8 @@ function App() {
   const [value, setValue] = useState<string>('');
   const [dialog, setDialog] = useState<{key: string, value: string} []> ([]);
 
+  const aiBotService: AIBotService = new AIBotService();
+
   const onChange = (event: any) => {
     setValue(event.target.value);
   };
@@ -21,7 +23,7 @@ function App() {
       setValue("");
 
       setTimeout(() => {
-        dialog.push({key: "bot", value: AIBotService.getAnswer(v)});
+        dialog.push({key: "bot", value: aiBotService.getAnswer(v)});
 
         setDialog([...dialog]);
       }, 1000)
@@ -36,7 +38,7 @@ function App() {
       </header>
       <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
         <div className="dialogWrapper">
-          <div>
+          <div style={{overflow: "auto", maxHeight: "70vh"}}>
             {
               dialog.map((item: {key: string, value: string}, index: number) => {
                 return <div key={index} style={{display: "flex", flexDirection: "row", justifyContent: item.key === "user" ? "flex-end" : "flex-start", width: "100%"}}>
