@@ -15,12 +15,15 @@ export class AIBotService {
         "hello": "Hello,",
         "date": `Today is ${moment(new Date()).format("DD.MM.YYYY")}`,
         "day": `Today is ${this.week[moment(new Date()).day() - 1]}`,
-        "weather": "The average monthly air temperature is -1.2 – +3.4°C.",
-        "price car": "This car costs 15 000$",
-        "car price": "This car costs 15 000$"
+        "weather": "First of all tell me where do you live?"
     };
 
-    public getAnswer(question: string) {
+    // weatherData: any = {
+    //     humidity: undefined,
+    //     pressure: undefined
+    // };
+
+    async getAnswer(question: string) {
 
         const arr = question.trim().replaceAll(',', ' ')
             .replaceAll('.', '').replaceAll('!', '')
@@ -28,20 +31,38 @@ export class AIBotService {
 
         let answer = "";
 
-        if (this.cities[question.toLowerCase()]) {
-            this.fetchWeaterAPI(this.cities[question.toLowerCase()].lat, this.cities[question.toLowerCase()].lng).then((res: any) => {
-                answer = `Temperature ${res.current.temp}`;
-            }).catch(error => {})
-        } else {
-            arr.forEach(item => {
-                if (!answer && this.compareStrings[item.toLowerCase()]) answer = this.compareStrings[item.toLowerCase()];
-            });
-        }
-        return answer || "I can't answer on your question :( Sorry!";
+        return new Promise((resolve) => {
+            if (this.cities[question.toLowerCase()]) {
+                this.fetchWeaterAPI(this.cities[question.toLowerCase()].lat, this.cities[question.toLowerCase()].lng).then((res: any) => {
+                    // this.setWeatherData(res);
+                    // this.weatherData.humidity = res.main.humidity;
+                    // this.weatherData.pressure = res.main.pressure;
+                    // this.weatherData = res;
+                    // answer = `Temperature ${res.main.temp} F`;
+                    return resolve(res /*`Temperature ${res.main.temp} F`*/);
+                    // return new Promise((resolve) => {
+                    //     resolve(answer);
+                    // })
+                }).catch(error => {
+                    return resolve("Weather API Server error :( Sorry!");
+                    // return new Promise((resolve) => {
+                    //     resolve("Weather API Server error :( Sorry!");
+                    // })
+                })
+            } else {
+                arr.forEach(item => {
+                    if (!answer && this.compareStrings[item.toLowerCase()]) answer = this.compareStrings[item.toLowerCase()];
+                });
+                return resolve(answer || "I can't answer on your question :( Sorry!");
+                // return new Promise((resolve) => {
+                //     resolve(answer || "I can't answer on your question :( Sorry!");
+                // })
+            }
+        })
     };
 
     public fetchWeaterAPI(lat: number, lng: number) {
-        return fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lng}&appid=bf64caf37de45d7b2e9751adc28f384a`)
+        return fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=bf64caf37de45d7b2e9751adc28f384a`)
             .then(async (response: any) => {
                 if (response.status === 204 || response.status === 201) {
                     return {};
@@ -56,4 +77,12 @@ export class AIBotService {
             });
         });
     }
+
+    // public getWeatherData() {
+    //     return this.weatherData;
+    // }
+    //
+    // public setWeatherData(weatherData: any) {
+    //     this.weatherData = weatherData;
+    // }
 }
