@@ -1,27 +1,28 @@
 import moment from "moment";
-import {RequestOptions} from "https";
+
 
 export class AIBotService {
 
-    private week = ["Monday", "Tuesday", "wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    private week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     private cities: any = {
-        "kyiv": {lat: 51, lng: 34},
-        "london": {lat: 0, lng: 0}
+        "kyiv": {lat: 50.4333, lng: 30.5167},
+        "london": {lat: 51.5085, lng: -0.1257},
+        "rome": {lat: 41.8947, lng: 12.4839},
+        "amsterdam": {lat: 52.374, lng: 4.8897},
+        "warsaw": {lat: 52.2298, lng: 21.0118},
+        "kharkiv": {lat: 50, lng: 36.25},
+        "ottawa": {lat: 45.4112, lng: -75.6981}
     };
 
     private compareStrings: any = {
         "hi": "Hi,",
-        "hello": "Hello,",
+        "hello": "It's nice to meet you,",
         "date": `Today is ${moment(new Date()).format("DD.MM.YYYY")}`,
         "day": `Today is ${this.week[moment(new Date()).day() - 1]}`,
-        "weather": "First of all tell me where do you live?"
+        "weather": "First of all tell me where do you live?",
+        "thanks": "You're welcome!"
     };
-
-    // weatherData: any = {
-    //     humidity: undefined,
-    //     pressure: undefined
-    // };
 
     async getAnswer(question: string) {
 
@@ -34,29 +35,15 @@ export class AIBotService {
         return new Promise((resolve) => {
             if (this.cities[question.toLowerCase()]) {
                 this.fetchWeaterAPI(this.cities[question.toLowerCase()].lat, this.cities[question.toLowerCase()].lng).then((res: any) => {
-                    // this.setWeatherData(res);
-                    // this.weatherData.humidity = res.main.humidity;
-                    // this.weatherData.pressure = res.main.pressure;
-                    // this.weatherData = res;
-                    // answer = `Temperature ${res.main.temp} F`;
-                    return resolve(res /*`Temperature ${res.main.temp} F`*/);
-                    // return new Promise((resolve) => {
-                    //     resolve(answer);
-                    // })
+                    return resolve(res);
                 }).catch(error => {
                     return resolve("Weather API Server error :( Sorry!");
-                    // return new Promise((resolve) => {
-                    //     resolve("Weather API Server error :( Sorry!");
-                    // })
                 })
             } else {
                 arr.forEach(item => {
                     if (!answer && this.compareStrings[item.toLowerCase()]) answer = this.compareStrings[item.toLowerCase()];
                 });
                 return resolve(answer || "I can't answer on your question :( Sorry!");
-                // return new Promise((resolve) => {
-                //     resolve(answer || "I can't answer on your question :( Sorry!");
-                // })
             }
         })
     };
@@ -77,12 +64,4 @@ export class AIBotService {
             });
         });
     }
-
-    // public getWeatherData() {
-    //     return this.weatherData;
-    // }
-    //
-    // public setWeatherData(weatherData: any) {
-    //     this.weatherData = weatherData;
-    // }
 }

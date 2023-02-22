@@ -1,10 +1,11 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
 import {AIBotService} from "./AIBotService";
 
 function App() {
-
+  let counterUser = useRef(0);
+  let counterBot = useRef(0);
   const [value, setValue] = useState<string>('');
   const [dialog, setDialog] = useState<{key: string, value: string} []> ([]);
   const [weatherData, setWeatherData] = useState<any>(undefined);
@@ -18,35 +19,60 @@ function App() {
   const handleKeyDown = async (event: any) => {
     if (event.key === 'Enter') {
       const v = value;
-
-      if (v.toLowerCase().match("what is your name")) {
+      if (v.toLowerCase().match("goodbye")) {
+        setDialog([])
+        setTimeout(() => {
+          setDialog([{key: "bot", value: "Goodbye!"}])
+        }, 500)
+      }
+      else if (v.toLowerCase().match("what is your name")) {
         setTimeout(() => {
           dialog.push({key: "bot", value: "My name is Toby!"});
+          ++counterBot.current;
           setDialog([...dialog]);
           setTimeout(() => {
             dialog.push({key: "bot", value: "How are you?"});
+            ++counterBot.current;
             setDialog([...dialog]);
-            updateBotAnswer(`How can I help you?`, 2000);
           }, 2000);
         }, 1000);
+      } else if(v.toLowerCase().match("good") || v.toLowerCase().match("fine") || v.toLowerCase().match("great")) {
+        updateBotAnswer(`Happy to hear that!`, 2000);
+        updateBotAnswer(`How can I help you?`, 2000);
+        counterBot.current = counterBot.current + 2;
       } else if (v.toLowerCase().match("humidity") && weatherData) {
-        updateBotAnswer(`Humidity ${weatherData.main.humidity} %`, 1000);
+        updateBotAnswer(`Humidity is ${weatherData.main.humidity} %`, 1000);
+        ++counterBot.current;
       } else if (v.toLowerCase().match("pressure") && weatherData) {
-        updateBotAnswer(`Pressure ${weatherData.main.pressure} bar`, 1000);
-      } else {
+        updateBotAnswer(`Pressure is ${weatherData.main.pressure} bar`, 1000);
+        ++counterBot.current;
+      } else if (v.toLowerCase().match("feels") && weatherData) {
+        updateBotAnswer(`Temperature feels like ${(weatherData.main.feels_like - 273.15).toFixed(1)} C`, 1000);
+        ++counterBot.current;
+      } else if (v.toLowerCase().match("description") && weatherData) {
+        updateBotAnswer(`The weather outside is ${weatherData.weather[0].description}`, 1000);
+        ++counterBot.current;
+      } else if (v.toLowerCase().match("wind") && weatherData) {
+        updateBotAnswer(`The wind speed is ${weatherData.wind.speed} m/s`, 1000);
+        ++counterBot.current;
+      }
+      else {
         setTimeout(async () => {
           if (dialog.length === 1) {
-            dialog.push({key: "bot", value: "What is your name?"});
+            dialog.push({key: "bot", value: "Hello! What is your name?"});
+            ++counterBot.current;
             setDialog([...dialog]);
           } else if (dialog.length === 3) {
             const answer: any = await aiBotService.getAnswer("hello");
             dialog.push({key: "bot", value: `${answer} ${v}!`});
+            ++counterBot.current;
             setDialog([...dialog]);
           } else {
             const answer: any = await aiBotService.getAnswer(v);
             if (typeof answer !== "string") {
               setWeatherData(answer);
-              dialog.push({key: "bot", value: `Temperature ${answer.main.temp} F`});
+              dialog.push({key: "bot", value: `Temperature ${(answer.main.temp - 273.15).toFixed(1)} C`});
+              ++counterBot.current;
             } else {
               dialog.push({key: "bot", value: answer});
             }
@@ -57,6 +83,9 @@ function App() {
 
 
       dialog.push({key: "user", value});
+      ++counterUser.current;
+      console.log(counterUser)
+      console.log(counterBot)
 
       setDialog([...dialog]);
       setValue("");
@@ -75,6 +104,12 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
+        <div style={{
+          fontSize: "30px",
+          color: "white",
+          marginLeft: "30px",
+          marginTop: "12px"
+        }}>Lab 1 - Weather Prediction</div>
       </header>
       <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
         <div className="dialogWrapper">
