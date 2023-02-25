@@ -4,11 +4,12 @@ import './App.css';
 import {AIBotService} from "./AIBotService";
 
 function App() {
+
   let counterUser = useRef(0);
   let counterBot = useRef(0);
   const [value, setValue] = useState<string>('');
   const [dialog, setDialog] = useState<{key: string, value: string} []> ([]);
-  const [weatherData, setWeatherData] = useState<any>(undefined);
+  const [zodiacData, setZodiacData] = useState<any>(undefined);
 
   const aiBotService: AIBotService = new AIBotService();
 
@@ -36,26 +37,41 @@ function App() {
             setDialog([...dialog]);
           }, 2000);
         }, 1000);
-      } else if(v.toLowerCase().match("good") || v.toLowerCase().match("fine") || v.toLowerCase().match("great")) {
-        updateBotAnswer(`Happy to hear that!`, 2000);
+      }
+      else if(v.toLowerCase().match(/^(\d{4})-(\d{2})-(\d{2})$/)) {
+        const zodiacSign = aiBotService.getZodiacSign(v);
+        setTimeout(() => {
+          dialog.push({key: "bot", value: `Your sign is ${zodiacSign}`});
+          ++counterBot.current;
+          setDialog([...dialog]);
+        }, 1000);
+
+        const answer: any = await aiBotService.getAnswer(zodiacSign);
+        dialog.push({key: "bot", value: `Your horoscope on today - ${answer.description}`});
+        ++counterBot.current;
+        setDialog([...dialog]);
+      }
+      else if(v.toLowerCase().match("good") || v.toLowerCase().match("fine") || v.toLowerCase().match("great")) {
+        updateBotAnswer(`Happy to hear that!`, 1000);
         updateBotAnswer(`How can I help you?`, 2000);
         counterBot.current = counterBot.current + 2;
-      } else if (v.toLowerCase().match("humidity") && weatherData) {
-        updateBotAnswer(`Humidity is ${weatherData.main.humidity} %`, 1000);
-        ++counterBot.current;
-      } else if (v.toLowerCase().match("pressure") && weatherData) {
-        updateBotAnswer(`Pressure is ${weatherData.main.pressure} bar`, 1000);
-        ++counterBot.current;
-      } else if (v.toLowerCase().match("feels") && weatherData) {
-        updateBotAnswer(`Temperature feels like ${(weatherData.main.feels_like - 273.15).toFixed(1)} C`, 1000);
-        ++counterBot.current;
-      } else if (v.toLowerCase().match("description") && weatherData) {
-        updateBotAnswer(`The weather outside is ${weatherData.weather[0].description}`, 1000);
-        ++counterBot.current;
-      } else if (v.toLowerCase().match("wind") && weatherData) {
-        updateBotAnswer(`The wind speed is ${weatherData.wind.speed} m/s`, 1000);
-        ++counterBot.current;
       }
+      // else if (v.toLowerCase().match("humidity") && weatherData) {
+      //   updateBotAnswer(`Humidity is ${weatherData.main.humidity} %`, 1000);
+      //   ++counterBot.current;
+      // } else if (v.toLowerCase().match("pressure") && weatherData) {
+      //   updateBotAnswer(`Pressure is ${weatherData.main.pressure} bar`, 1000);
+      //   ++counterBot.current;
+      // } else if (v.toLowerCase().match("feels") && weatherData) {
+      //   updateBotAnswer(`Temperature feels like ${(weatherData.main.feels_like - 273.15).toFixed(1)} C`, 1000);
+      //   ++counterBot.current;
+      // } else if (v.toLowerCase().match("description") && weatherData) {
+      //   updateBotAnswer(`The weather outside is ${weatherData.weather[0].description}`, 1000);
+      //   ++counterBot.current;
+      // } else if (v.toLowerCase().match("wind") && weatherData) {
+      //   updateBotAnswer(`The wind speed is ${weatherData.wind.speed} m/s`, 1000);
+      //   ++counterBot.current;
+      // }
       else {
         setTimeout(async () => {
           if (dialog.length === 1) {
@@ -70,8 +86,8 @@ function App() {
           } else {
             const answer: any = await aiBotService.getAnswer(v);
             if (typeof answer !== "string") {
-              setWeatherData(answer);
-              dialog.push({key: "bot", value: `Temperature ${(answer.main.temp - 273.15).toFixed(1)} C`});
+              setZodiacData(answer);
+              dialog.push({key: "bot", value: `Description of horoscope for today ${answer.main.temp}`});
               ++counterBot.current;
             } else {
               dialog.push({key: "bot", value: answer});
@@ -109,7 +125,7 @@ function App() {
           color: "white",
           marginLeft: "30px",
           marginTop: "12px"
-        }}>Lab 1 - Weather Prediction</div>
+        }}>Lab 2 - Horoscope Prediction</div>
       </header>
       <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
         <div className="dialogWrapper">
