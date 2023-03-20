@@ -1,150 +1,291 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import logo from './logo.svg';
 import './App.css';
-import {AIBotService} from "./AIBotService";
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend,
+} from 'chart.js';
+import {Line} from 'react-chartjs-2';
+import SelectedListItem from "./SelectedListItem";
+import {ECGService} from "./ECGService";
+import {Box, FormControlLabel, Slider, Switch} from "@mui/material";
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    Title,
+    Tooltip,
+    Legend
+);
 
 function App() {
+    const [data, setData] = useState(undefined);
 
-  let counterUser = useRef(0);
-  let counterBot = useRef(0);
-  const [value, setValue] = useState<string>('');
-  const [dialog, setDialog] = useState<{key: string, value: string} []> ([]);
-  const [zodiacData, setZodiacData] = useState<any>(undefined);
+    const [selectedIndex, setSelectedIndex] = React.useState(1);
+    const [negative, setNegative] = React.useState(false);
+    const [fh, setFh] = React.useState(60);
+    const [aT, setAt] = React.useState(0.2);
+    const [mT, setMt] = React.useState(0.6);
+    const [bT1, setBt1] = React.useState(0.05);
+    const [bT2, setBt2] = React.useState(0.03);
 
-  const aiBotService: AIBotService = new AIBotService();
+    useEffect(() => {
+        setData({
+            // @ts-ignore
+            labels: [],
+            datasets: [
+                {
+                    label: 'Dataset 1',
+                    data: [],
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    tension: 0.2,
+                    responsive: true,
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    max: 10,
+                                    beginAtZero: true
+                                }
+                            }]
+                        },
+                        animation: {
+                            duration: 100
+                        }
+                    }
+                }
+            ],
 
-  const onChange = (event: any) => {
-    setValue(event.target.value);
-  };
+        })
+    }, []);
 
-  const handleKeyDown = async (event: any) => {
-    if (event.key === 'Enter') {
-      const v = value;
-      if (v.toLowerCase().match("goodbye")) {
-        setDialog([])
-        setTimeout(() => {
-          setDialog([{key: "bot", value: "Goodbye!"}])
-        }, 500)
-      }
-      else if (v.toLowerCase().match("what is your name")) {
-        setTimeout(() => {
-          dialog.push({key: "bot", value: "My name is Toby!"});
-          ++counterBot.current;
-          setDialog([...dialog]);
-          setTimeout(() => {
-            dialog.push({key: "bot", value: "How are you?"});
-            ++counterBot.current;
-            setDialog([...dialog]);
-          }, 2000);
-        }, 1000);
-      }
-      else if(v.toLowerCase().match(/^(\d{4})-(\d{2})-(\d{2})$/)) {
-        const zodiacSign = aiBotService.getZodiacSign(v);
-        setTimeout(() => {
-          dialog.push({key: "bot", value: `Your sign is ${zodiacSign}`});
-          ++counterBot.current;
-          setDialog([...dialog]);
-        }, 1000);
+    const updateDataSet = (obj :{timeLine: number [], ecg: number []}, index: number) => {
+        setData({
+            // @ts-ignore
+            labels: obj.timeLine,
+            datasets: [
+                {
+                    label: !index ? 'Власноруч побудований' : index === 1 ? 'Нормальний цикл' : index === 2 ?
+                        'Цикл з від\'ємним T' : 'Цикл з асиметричним T',
+                    data: obj.ecg,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                    tension: 0.2,
+                    responsive: true,
+                    options: {
+                        maintainAspectRatio: false,
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    max: 10,
+                                    beginAtZero: true
+                                }
+                            }]
+                        },
+                        animation: {
+                            duration: 100
+                        }
+                    }
+                }
+            ],
 
-        const answer: any = await aiBotService.getAnswer(zodiacSign);
-        dialog.push({key: "bot", value: `Your horoscope on today - ${answer.description}`});
-        ++counterBot.current;
-        setDialog([...dialog]);
-      }
-      else if(v.toLowerCase().match("good") || v.toLowerCase().match("fine") || v.toLowerCase().match("great")) {
-        updateBotAnswer(`Happy to hear that!`, 1000);
-        updateBotAnswer(`How can I help you?`, 2000);
-        counterBot.current = counterBot.current + 2;
-      }
-      // else if (v.toLowerCase().match("humidity") && weatherData) {
-      //   updateBotAnswer(`Humidity is ${weatherData.main.humidity} %`, 1000);
-      //   ++counterBot.current;
-      // } else if (v.toLowerCase().match("pressure") && weatherData) {
-      //   updateBotAnswer(`Pressure is ${weatherData.main.pressure} bar`, 1000);
-      //   ++counterBot.current;
-      // } else if (v.toLowerCase().match("feels") && weatherData) {
-      //   updateBotAnswer(`Temperature feels like ${(weatherData.main.feels_like - 273.15).toFixed(1)} C`, 1000);
-      //   ++counterBot.current;
-      // } else if (v.toLowerCase().match("description") && weatherData) {
-      //   updateBotAnswer(`The weather outside is ${weatherData.weather[0].description}`, 1000);
-      //   ++counterBot.current;
-      // } else if (v.toLowerCase().match("wind") && weatherData) {
-      //   updateBotAnswer(`The wind speed is ${weatherData.wind.speed} m/s`, 1000);
-      //   ++counterBot.current;
-      // }
-      else {
-        setTimeout(async () => {
-          if (dialog.length === 1) {
-            dialog.push({key: "bot", value: "Hello! What is your name?"});
-            ++counterBot.current;
-            setDialog([...dialog]);
-          } else if (dialog.length === 3) {
-            const answer: any = await aiBotService.getAnswer("hello");
-            dialog.push({key: "bot", value: `${answer} ${v}!`});
-            ++counterBot.current;
-            setDialog([...dialog]);
-          } else {
-            const answer: any = await aiBotService.getAnswer(v);
-            if (typeof answer !== "string") {
-              setZodiacData(answer);
-              dialog.push({key: "bot", value: `Description of horoscope for today ${answer.main.temp}`});
-              ++counterBot.current;
-            } else {
-              dialog.push({key: "bot", value: answer});
-            }
-            setDialog([...dialog]);
-          }
-        }, 1000);
-      }
+        })
+    };
 
+    const pickMethodByIndex = (index: number) => {
+        setSelectedIndex(index);
+        switch (index) {
+            case 0:
+                updateDataSet(ECGService.ecgCustomDataset(fh, aT, mT, bT1, bT2, negative), index);
+                break;
+            case 1:
+                updateDataSet(ECGService.ecgDataset(false, false), index);
+                break;
+            case 2:
+                updateDataSet(ECGService.ecgDataset(true, false), index);
+                break;
+            case 3:
+                updateDataSet(ECGService.ecgDataset(false, true), index);
+                break;
+        }
+    };
 
-      dialog.push({key: "user", value});
-      ++counterUser.current;
-      console.log(counterUser)
-      console.log(counterBot)
+    const setFhValue = (event: Event, value: any) => {
+        setFh(value);
+        updateDataSet(ECGService.ecgCustomDataset(value, aT, mT, bT1, bT2, negative), selectedIndex);
+    };
 
-      setDialog([...dialog]);
-      setValue("");
-    }
-  };
+    const setAtValue = (event: Event, value: any) => {
+        setAt(value);
+        updateDataSet(ECGService.ecgCustomDataset(fh, value, mT, bT1, bT2, negative), selectedIndex);
+    };
 
-  const updateBotAnswer = (answer: string, timeout: number) => {
-    setTimeout(() => {
-      dialog.push({key: "bot", value: answer});
-      setDialog([...dialog]);
-    }, timeout)
-  };
+    const setMtValue = (event: Event, value: any) => {
+        setMt(value);
+        updateDataSet(ECGService.ecgCustomDataset(fh, aT, value, bT1, bT2, negative), selectedIndex);
+    };
 
+    const setBt1Value = (event: Event, value: any) => {
+        setBt1(value);
+        updateDataSet(ECGService.ecgCustomDataset(fh, aT, mT, value, bT2, negative), selectedIndex);
+    };
 
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <div style={{
-          fontSize: "30px",
-          color: "white",
-          marginLeft: "30px",
-          marginTop: "12px"
-        }}>Lab 2 - Horoscope Prediction</div>
-      </header>
-      <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
-        <div className="dialogWrapper">
-          <div style={{overflow: "auto", maxHeight: "70vh"}}>
-            {
-              dialog.map((item: {key: string, value: string}, index: number) => {
-                return <div key={index} style={{display: "flex", flexDirection: "row", justifyContent: item.key === "user" ? "flex-end" : "flex-start", width: "100%"}}>
-                  <div className="answer">
-                    {item.value}
-                  </div>
+    const setBt2Value = (event: Event, value: any) => {
+        setBt2(value);
+        updateDataSet(ECGService.ecgCustomDataset(fh, aT, mT, bT1, value, negative), selectedIndex);
+    };
+
+    const setNegativeValue = (event: any, value: any) => {
+        setNegative(value);
+        updateDataSet(ECGService.ecgCustomDataset(fh, aT, mT, bT1, bT2, value), selectedIndex);
+    };
+
+    return (
+        <div className="App">
+            <header className="App-header">
+                <img src={logo} className="App-logo" alt="logo"/>
+                <div style={{
+                    fontSize: "30px",
+                    color: "#666666",
+                    marginLeft: "30px",
+                    marginTop: "12px"
+                }}>Lab 3 - ECG diagram
                 </div>
-              })
-            }
-          </div>
-          <input className="inputBlock" value={value || ""} onChange={onChange} onKeyDown={handleKeyDown}/>
+            </header>
+            <div style={{display: "flex", flexDirection: "row", justifyContent: "space-between", height: "100%"}}>
+                <div style={{
+                    width: "70%",
+                    padding: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center"
+                }}>
+                    { data && <Line data={data}/> }
+                </div>
+                <div style={{
+                    width: "30%",
+                    padding: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center"
+                }}>
+                    <FormControlLabel
+                        control={
+                            <Switch checked={negative} onChange={setNegativeValue} disabled={!!selectedIndex} />
+                        }
+                        label="Від'ємне"
+                    />
+                    <div className="boxWrapper">
+                        <Box sx={{ width: 360 }}>
+                            <div className="sliderWrapper">
+                                <Slider
+                                    value={fh || 60}
+                                    onChange={setFhValue}
+                                    valueLabelDisplay="auto"
+                                    step={10}
+                                    marks
+                                    min={10}
+                                    max={110}
+                                    disabled={!!selectedIndex}
+                                />
+                            </div>
+                        </Box>
+                        <div className="labelWrapper">
+                            Fh
+                        </div>
+                    </div>
+                    <div className="boxWrapper">
+                        <Box sx={{ width: 360 }}>
+                            <div className="sliderWrapper">
+                                <Slider
+                                    aria-label="A_T"
+                                    value={aT || 0.2}
+                                    onChange={setAtValue}
+                                    valueLabelDisplay="auto"
+                                    step={0.1}
+                                    marks
+                                    min={0.1}
+                                    max={0.9}
+                                    disabled={!!selectedIndex}
+                                />
+                            </div>
+                        </Box>
+                        <div className="labelWrapper">
+                            aT
+                        </div>
+                    </div>
+                    <div className="boxWrapper">
+                        <Box sx={{ width: 360 }}>
+                            <div className="sliderWrapper">
+                                <Slider
+                                    value={mT || 0.6}
+                                    onChange={setMtValue}
+                                    valueLabelDisplay="auto"
+                                    step={0.1}
+                                    marks
+                                    min={0.1}
+                                    max={0.9}
+                                    disabled={!!selectedIndex}
+                                />
+                            </div>
+                        </Box>
+                        <div className="labelWrapper">
+                            mT
+                        </div>
+                    </div>
+                    <div className="boxWrapper">
+                        <Box sx={{ width: 360 }}>
+                            <div className="sliderWrapper">
+                                <Slider
+                                    value={bT1 || 0.05}
+                                    onChange={setBt1Value}
+                                    valueLabelDisplay="auto"
+                                    step={0.01}
+                                    marks
+                                    min={0.01}
+                                    max={0.09}
+                                    disabled={!!selectedIndex}
+                                />
+                            </div>
+                        </Box>
+                        <div className="labelWrapper">
+                            bT1
+                        </div>
+                    </div>
+                    <div className="boxWrapper">
+                        <Box sx={{ width: 360 }}>
+                            <div className="sliderWrapper">
+                                <Slider
+                                    value={bT2 || 0.03}
+                                    onChange={setBt2Value}
+                                    valueLabelDisplay="auto"
+                                    step={0.01}
+                                    marks
+                                    min={0.01}
+                                    max={0.09}
+                                    disabled={!!selectedIndex}
+                                />
+                            </div>
+                        </Box>
+                        <div className="labelWrapper">
+                            bT2
+                        </div>
+                    </div>
+                    <SelectedListItem setSelectedIndexMethod={pickMethodByIndex}/>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default App;

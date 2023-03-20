@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background-color: #282c34;
+  background-color: lightgrey;
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -70,4 +70,22 @@
   display: flex;
   flex-direction: row;
   background-color: rgb(255, 255, 255);
+}
+
+.boxWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  margin: 6px 0
+}
+
+.sliderWrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}
+
+.labelWrapper {
+  margin-left: 11px;
+  margin-top: 3px;
 }
