@@ -106,10 +106,15 @@ function App() {
         setSelectedIndex(index);
         switch (index) {
             case 0:
-                updateDataSet(ECGService.ecgCustomDataset(fh, aT, mT, bT1, bT2, negative), index);
+                // updateDataSet(ECGService.ecgCustomDataset(fh, aT, mT, bT1, bT2, negative), index);
+                updateDataSet(ECGService.ecgCycle(fh, aT, mT, bT1, bT2, 0.1,5, 0.01  ), index);
                 break;
             case 1:
-                updateDataSet(ECGService.ecgDataset(false, false), index);
+                // ecgCycle(Fh: number, A_T: number, mu_T: number, sigma_T_1: number, sigma_T_2: number, alt: number,
+                // countCycles: number, noise: number)
+                // updateDataSet(ECGService.ecgDataset(false, false), index);
+                updateDataSet(ECGService.ecgCycle(fh, aT, mT, bT1, bT2, 0.1,10, 0.01  ), index);
+                // updateDataSet(ECGService.get_Model(60, aT, bT1, bT2, mT, 0.005,4, 0.05  ), index);
                 break;
             case 2:
                 updateDataSet(ECGService.ecgDataset(true, false), index);
