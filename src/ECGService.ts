@@ -1,4 +1,66 @@
+import { NdArray } from "numjs";
+import * as ndarray from "ndarray";
+import ECG  from './ECG.json';
+
 export class ECGService {
+
+    public static ready_1(tu: number): { t: number[]; data: any; ph_tu_1: any, phase_1_ecg_1: any; phase_2_ecg_1: any } {
+        const iSampleRate = 500;
+        const f_data: any = [];
+
+        // fetch('./ECG.txt')
+        //     .then(r => r.text())
+        //     .then(text => {
+        //         console.log('text decoded:', text);
+        //     });
+
+        // @ts-ignore
+        const lines = ECG.text.split('\n');
+        lines.forEach(line => {
+            line.trim();
+            f_data.push(line.split(' ').map((x) => parseFloat(x)).filter((x) => !isNaN(x)));
+        });
+
+
+        // const file = new QFile('ecg1.txt');
+        // if (file.open(QIODevice.ReadOnly | QIODevice.Text)) {
+        //     const lineStreamReader = new QTextStream(file);
+        //     while (!lineStreamReader.atEnd()) {
+        //         const line = lineStreamReader.readLine();
+        //         f_data.push(line.split(' ').map((x) => parseFloat(x)));
+        //     }
+        //     file.close();
+        // }
+        //
+        const data = f_data.flat();
+        const iSampleCount = data.length;
+        const t = Array.from({ length: iSampleCount }, (_, i) => i * (iSampleCount / iSampleRate));
+        // console.log(t)
+        const phase_1_ecg_1 = data.slice(0, data.length - tu);
+        const phase_2_ecg_1 = data.slice(tu);
+        // console.log(phase_1_ecg_1)
+        // console.log(phase_2_ecg_1)
+        const ph_tu_1 = this.gradient(data, t);
+        return {t, data, ph_tu_1, phase_1_ecg_1, phase_2_ecg_1};
+    }
+
+    static gradient(arr1: number [], arr2: number []) {
+        const numElements = arr1.length;
+        const result = new Array(numElements);
+
+        for (let i = 0; i < numElements; i++) {
+            // вычисляем производную
+            if (i === 0) {
+                result[i] = (arr1[i+1] - arr1[i]) / (arr2[i+1] - arr2[i]);
+            } else if (i === numElements - 1) {
+                result[i] = (arr1[i] - arr1[i-1]) / (arr2[i] - arr2[i-1]);
+            } else {
+                result[i] = (arr1[i+1] - arr1[i-1]) / (arr2[i+1] - arr2[i-1]);
+            }
+        }
+
+        return result;
+    }
 
     public static ecgCustomDataset(Fh: number, A_T: number, mu_T: number, bT1: number, bT2: number, negativeT: boolean) {
         const params = {

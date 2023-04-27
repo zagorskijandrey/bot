@@ -25,30 +25,30 @@ export default function SelectedListItem(p: {
                     selected={selectedIndex === 0}
                     onClick={(event) => handleListItemClick(event, 0)}
                 >
-                    <ListItemText primary="Побудувати власноруч" />
+                    <ListItemText primary="Побудувати графіки" />
                 </ListItemButton>
             </List>
-            <Divider />
-            <List component="nav" aria-label="secondary mailbox folder">
-                <ListItemButton
-                    selected={selectedIndex === 1}
-                    onClick={(event) => handleListItemClick(event, 1)}
-                >
-                    <ListItemText primary="Побудувати нормальний цикл" />
-                </ListItemButton>
-                <ListItemButton
-                    selected={selectedIndex === 2}
-                    onClick={(event) => handleListItemClick(event, 2)}
-                >
-                    <ListItemText primary="Побудувати з від'ємним T" />
-                </ListItemButton>
-                <ListItemButton
-                    selected={selectedIndex === 3}
-                    onClick={(event) => handleListItemClick(event, 3)}
-                >
-                    <ListItemText primary="Побудувати з асиметричним T" />
-                </ListItemButton>
-            </List>
+            {/*<Divider />*/}
+            {/*<List component="nav" aria-label="secondary mailbox folder">*/}
+            {/*    <ListItemButton*/}
+            {/*        selected={selectedIndex === 1}*/}
+            {/*        onClick={(event) => handleListItemClick(event, 1)}*/}
+            {/*    >*/}
+            {/*        <ListItemText primary="Побудувати нормальний цикл" />*/}
+            {/*    </ListItemButton>*/}
+            {/*    <ListItemButton*/}
+            {/*        selected={selectedIndex === 2}*/}
+            {/*        onClick={(event) => handleListItemClick(event, 2)}*/}
+            {/*    >*/}
+            {/*        <ListItemText primary="Побудувати з від'ємним T" />*/}
+            {/*    </ListItemButton>*/}
+            {/*    <ListItemButton*/}
+            {/*        selected={selectedIndex === 3}*/}
+            {/*        onClick={(event) => handleListItemClick(event, 3)}*/}
+            {/*    >*/}
+            {/*        <ListItemText primary="Побудувати з асиметричним T" />*/}
+            {/*    </ListItemButton>*/}
+            {/*</List>*/}
         </Box>
     );
 }
